@@ -2,956 +2,389 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NHS Connect | AI Receptionist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>NHS Connect | Smart Receptionist</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #005EB8;
-            --primary-dark: #003087;
-            --accent: #00A9CE;
-            --bg-grad-start: #f0f7fa;
-            --bg-grad-end: #e1e9f0;
-            --surface: #ffffff;
-            --text-main: #1f2937;
-            --text-sub: #6b7280;
-            --error: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            /* Official NHS Colour Palette */
+            --nhs-blue: #005EB8;
+            --nhs-dark-blue: #003087;
+            --nhs-bright-blue: #0072CE;
+            --nhs-grey-1: #425563;
+            --nhs-grey-2: #768692;
+            --nhs-grey-5: #F0F4F5;
+            --white: #FFFFFF;
+            
+            /* UI Variables */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --radius-bubble: 18px;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--nhs-grey-5);
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            height: 100vh;
+            color: var(--nhs-grey-1);
         }
 
-        .app-container {
-            background: var(--surface);
+        /* Main App Container */
+        .app-card {
             width: 100%;
-            max-width: 480px;
-            border-radius: 24px;
-            box-shadow: 
-                0 20px 25px -5px rgba(0, 0, 0, 0.1), 
-                0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            padding: 32px 24px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .badge {
-            background-color: var(--primary);
-            color: white;
-            padding: 8px 20px;
-            font-weight: 700;
-            font-size: 13px;
-            border-radius: 6px;
-            display: inline-block;
-            margin-bottom: 16px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        h1 {
-            color: var(--text-main);
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0 0 8px 0;
-        }
-
-        p.subtitle {
-            color: var(--text-sub);
-            font-size: 15px;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-
-        /* Instructions Panel */
-        .instructions {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 2px solid #bae6fd;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 28px;
-            text-align: left;
-            position: relative;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .instructions-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .instructions-icon {
-            background: var(--primary);
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .instructions h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--primary-dark);
-        }
-
-        .instruction-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--text-main);
-        }
-
-        .instruction-step:last-child {
-            margin-bottom: 0;
-        }
-
-        .step-number {
-            background: var(--primary);
-            color: white;
-            min-width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .instruction-text {
-            padding-top: 2px;
-        }
-
-        .instruction-text strong {
-            color: var(--primary-dark);
-        }
-
-        .close-instructions {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: transparent;
-            border: none;
-            color: var(--text-sub);
-            cursor: pointer;
-            font-size: 20px;
-            padding: 4px;
-            line-height: 1;
-            transition: color 0.2s;
-        }
-
-        .close-instructions:hover {
-            color: var(--text-main);
-        }
-
-        .show-instructions-btn {
-            display: none;
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.2s;
-        }
-
-        .show-instructions-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Status Display */
-        .status-container {
-            margin-bottom: 24px;
-            min-height: 60px;
-        }
-
-        #status-text {
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 16px;
-            margin-bottom: 8px;
-            transition: color 0.3s ease;
-        }
-
-        #status-subtext {
-            font-size: 13px;
-            color: var(--text-sub);
-            min-height: 20px;
-        }
-
-        /* Microphone Button Area */
-        .mic-wrapper {
-            position: relative;
-            height: 160px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-        }
-
-        .pulse-ring {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: var(--primary);
-            opacity: 0;
-            transform: scale(0.8);
-        }
-
-        .mic-wrapper.active .pulse-ring {
-            animation: pulse-animation 2s infinite;
-        }
-        .mic-wrapper.active .pulse-ring:nth-child(2) {
-            animation-delay: 0.5s;
-        }
-
-        @keyframes pulse-animation {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(2.8); opacity: 0; }
-        }
-
-        #mic-btn {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border: none;
-            cursor: pointer;
-            z-index: 10;
-            box-shadow: 0 10px 30px rgba(0, 94, 184, 0.3);
+            max-width: 440px;
+            height: 100%;
+            max-height: 850px;
+            background: var(--white);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
+            box-shadow: var(--shadow-md);
         }
 
-        #mic-btn:hover:not(.disabled) {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 40px rgba(0, 94, 184, 0.4);
+        /* Desktop border radius */
+        @media (min-width: 450px) {
+            .app-card {
+                height: 90vh;
+                border-radius: 16px;
+                overflow: hidden;
+            }
         }
 
-        #mic-btn:active:not(.disabled) {
-            transform: scale(0.95);
+        /* Header */
+        .header {
+            background-color: var(--nhs-blue);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(0, 94, 184, 0.2);
+            z-index: 10;
         }
 
-        #mic-btn.disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .header-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.01em;
         }
 
-        #mic-btn svg {
-            width: 44px;
-            height: 44px;
-            fill: white;
-            transition: transform 0.3s ease;
+        .header-title span {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 400;
+            display: block;
+            margin-top: 2px;
         }
 
-        .mic-label {
-            color: white;
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
-            margin-top: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Recording State */
-        .is-recording #mic-btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
-            animation: recordPulse 1.5s infinite;
-        }
-
-        @keyframes recordPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .is-recording .mic-label {
-            animation: blink 1s infinite;
-        }
-
-        /* Processing State */
-        .is-processing #mic-btn {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-        }
-
-        .is-processing #status-text {
-            animation: blink 1.5s infinite;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0.5; }
-        }
-
-        /* Conversation History */
-        .conversation-container {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 16px;
-            text-align: left;
-        }
-
-        .conversation-container:empty {
-            display: none;
-        }
-
-        .message {
-            margin-bottom: 16px;
-            animation: messageSlideIn 0.3s ease-out;
-        }
-
-        @keyframes messageSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message-label {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .message-label.user {
-            color: var(--primary);
-        }
-
-        .message-label.assistant {
-            color: var(--success);
-        }
-
-        .message-bubble {
-            background: white;
-            padding: 14px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--text-main);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .message.user .message-bubble {
-            background: var(--primary);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.assistant .message-bubble {
-            background: white;
-            border-bottom-left-radius: 4px;
-        }
-
-        /* Clear Conversation Button */
-        .clear-conversation {
-            background: transparent;
-            border: 1px solid var(--text-sub);
-            color: var(--text-sub);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 12px;
-        }
-
-        .clear-conversation:hover {
-            border-color: var(--error);
-            color: var(--error);
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 480px) {
-            .app-container {
-                border-radius: 0;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-            }
-
-            .instruction-step {
-                font-size: 13px;
-            }
-
-            #mic-btn {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        /* Scrollbar Styling */
-        .conversation-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .conversation-container::-webkit-scrollbar-track {
-            background: #e5e7eb;
-            border-radius: 3px;
-        }
-
-        .conversation-container::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 3px;
-        }
-
-        /* Loading Dots */
-        .loading-dots {
-            display: inline-flex;
-            gap: 4px;
-        }
-
-        .loading-dots span {
+        .status-dot {
             width: 6px;
             height: 6px;
-            background: currentColor;
+            background-color: #00D600; /* Green */
             border-radius: 50%;
-            animation: dotPulse 1.4s infinite ease-in-out;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
         }
 
-        .loading-dots span:nth-child(2) {
-            animation-delay: 0.2s;
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+            background-color: #fff;
         }
 
-        .loading-dots span:nth-child(3) {
-            animation-delay: 0.4s;
+        /* Message Bubbles */
+        .message-row {
+            display: flex;
+            width: 100%;
         }
 
-        @keyframes dotPulse {
-            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-            40% { opacity: 1; transform: scale(1); }
+        .message-row.user { justify-content: flex-end; }
+        .message-row.bot { justify-content: flex-start; }
+
+        .bubble {
+            max-width: 80%;
+            padding: 14px 18px;
+            font-size: 15px;
+            line-height: 1.5;
+            position: relative;
+            word-wrap: break-word;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .bot .bubble {
+            background-color: var(--nhs-grey-5);
+            color: var(--nhs-grey-1);
+            border-radius: var(--radius-bubble);
+            border-top-left-radius: 4px;
+        }
+
+        .user .bubble {
+            background-color: var(--nhs-blue);
+            color: var(--white);
+            border-radius: var(--radius-bubble);
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 94, 184, 0.25);
+        }
+
+        /* Input Area */
+        .input-wrapper {
+            padding: 16px;
+            border-top: 1px solid #eee;
+            background: var(--white);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid #E0E4E7;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        input:focus {
+            border-color: var(--nhs-blue);
+            box-shadow: 0 0 0 3px rgba(0, 94, 184, 0.1);
+        }
+
+        button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--nhs-blue);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        button:hover {
+            background-color: var(--nhs-dark-blue);
+            transform: scale(1.05);
+        }
+
+        button:active { transform: scale(0.95); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+
+        button svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+            margin-left: 2px; /* Visual centering */
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            padding: 0 24px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: var(--nhs-grey-2);
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot-flashing {
+            position: relative;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: var(--nhs-grey-2);
+            animation: dot-flashing 1s infinite linear alternate;
+            animation-delay: 0.5s;
+        }
+        .dot-flashing::before, .dot-flashing::after {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: var(--nhs-grey-2);
+            animation: dot-flashing 1s infinite alternate;
+        }
+        .dot-flashing::before { left: -10px; animation-delay: 0s; }
+        .dot-flashing::after { left: 10px; animation-delay: 1s; }
+
+        @keyframes dot-flashing {
+            0% { background-color: var(--nhs-grey-2); }
+            50%, 100% { background-color: #e3e7ed; }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="badge">NHS Connect</div>
+    <div class="app-card">
+        <div class="header">
+            <div class="header-title">
+                <h1>NHS Connect</h1>
+                <span>Virtual Receptionist</span>
+            </div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                Online
+            </div>
+        </div>
 
-        <h1>Virtual Receptionist</h1>
-        <p class="subtitle">AI-powered appointment assistant</p>
-
-        <!-- Instructions Panel -->
-        <div class="instructions" id="instructions-panel">
-            <button class="close-instructions" onclick="hideInstructions()">×</button>
-            <div class="instructions-header">
-                <div class="instructions-icon">📱</div>
-                <h3>How to Use (Walkie-Talkie Style)</h3>
-            </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">1</div>
-                <div class="instruction-text">
-                    <strong>Press and HOLD</strong> the blue microphone button while speaking
-                </div>
-            </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">2</div>
-                <div class="instruction-text">
-                    <strong>Speak clearly</strong> about what you need (book, cancel, or reschedule)
-                </div>
-            </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">3</div>
-                <div class="instruction-text">
-                    <strong>Release</strong> the button when finished speaking
-                </div>
-            </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">4</div>
-                <div class="instruction-text">
-                    <strong>Wait</strong> for Sarah's response - she'll speak back to you
-                </div>
-            </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">5</div>
-                <div class="instruction-text">
-                    <strong>Continue</strong> the conversation until your appointment is confirmed
+        <div class="chat-area" id="chat-container">
+            <div class="message-row bot">
+                <div class="bubble">
+                    Hello! I'm Sarah, your virtual receptionist. 👋<br><br>
+                    I can help you <b>book appointments</b>, <b>cancel bookings</b>, or check availability.<br><br>
+                    How can I help you today?
                 </div>
             </div>
         </div>
 
-        <button class="show-instructions-btn" id="show-instructions-btn" onclick="showInstructions()">
-            📱 Show Instructions
-        </button>
-
-        <!-- Status Display -->
-        <div class="status-container">
-            <div id="status-text">Ready to help</div>
-            <div id="status-subtext">Press and hold to speak</div>
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="dot-flashing"></div>
+            <span>Sarah is thinking...</span>
         </div>
 
-        <!-- Microphone Button -->
-        <div class="mic-wrapper" id="mic-wrapper">
-            <div class="pulse-ring"></div>
-            <div class="pulse-ring"></div>
-            
-            <button id="mic-btn" 
-                onmousedown="startRecording()" 
-                onmouseup="stopRecording()" 
-                ontouchstart="startRecording()" 
-                ontouchend="stopRecording()">
-                
+        <div class="input-wrapper">
+            <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+            <button id="send-btn">
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 2.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                 </svg>
-                <div class="mic-label">HOLD TO TALK</div>
             </button>
         </div>
-
-        <!-- Conversation History -->
-        <div class="conversation-container" id="conversation-history"></div>
-
-        <!-- Clear Button -->
-        <button class="clear-conversation" onclick="clearConversation()" style="display: none;" id="clear-btn">
-            🗑️ Clear Conversation
-        </button>
     </div>
 
     <script>
         // ==========================================
-        //  CONFIG: PASTE YOUR N8N WEBHOOK URL HERE
+        //  CONFIG: PASTE YOUR N8N URL HERE
         // ==========================================
-        const WEBHOOK_URL = "https://i-zeerak.app.n8n.cloud/webhook/voice-chat"; 
-        // IMPORTANT: Replace with your actual n8n webhook URL
+        const WEBHOOK_URL = "https://i-zeerak.app.n8n.cloud/webhook/nhs-chat"; 
         // ==========================================
 
-        let mediaRecorder;
-        let audioChunks = [];
-        let isProcessing = false;
-        let recordingTimeout;
-        
-        const statusEl = document.getElementById('status-text');
-        const statusSubtext = document.getElementById('status-subtext');
-        const micWrapper = document.getElementById('mic-wrapper');
-        const micBtn = document.getElementById('mic-btn');
-        const conversationHistory = document.getElementById('conversation-history');
-        const clearBtn = document.getElementById('clear-btn');
-        
-        // Session ID Handling
-        let sessionId = localStorage.getItem('nhs_session_id');
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // Persistent Session ID (Memory)
+        let sessionId = localStorage.getItem('nhs_chat_session_id');
         if (!sessionId) {
-            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-            localStorage.setItem('nhs_session_id', sessionId);
+            sessionId = Math.random().toString(36).substring(7);
+            localStorage.setItem('nhs_chat_session_id', sessionId);
         }
-        
-        console.log('🔑 Session ID:', sessionId);
 
-        // Load conversation history
-        loadConversationHistory();
+        // --- Core Logic ---
 
-        // --- Recording Functions ---
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
 
-        async function startRecording() {
-            if (isProcessing) {
-                console.log('⏳ Already processing, please wait...');
-                return;
-            }
+            // 1. Add User Message
+            addMessage(text, 'user');
+            userInput.value = '';
+            setLoading(true);
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    } 
-                });
-                
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'audio/webm;codecs=opus'
-                });
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
-                
-                mediaRecorder.onstop = sendAudio;
-                mediaRecorder.start();
-
-                // UI Updates
-                document.body.classList.add('is-recording');
-                micWrapper.classList.add('active');
-                micBtn.querySelector('.mic-label').textContent = 'RECORDING...';
-                statusEl.innerText = "🎤 Listening...";
-                statusEl.style.color = "#ef4444";
-                statusSubtext.innerText = "Release when done speaking";
-
-                console.log('🎙️ Recording started');
-
-                // Auto-stop after 30 seconds (safety)
-                recordingTimeout = setTimeout(() => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        stopRecording();
-                    }
-                }, 30000);
-
-            } catch (err) {
-                console.error("❌ Microphone Error:", err);
-                statusEl.innerText = "Microphone access denied";
-                statusEl.style.color = "var(--error)";
-                statusSubtext.innerText = "Please allow microphone access";
-                
-                // Show alert
-                setTimeout(() => {
-                    alert('Please allow microphone access to use the voice assistant. Check your browser settings.');
-                }, 100);
-            }
-        }
-
-        function stopRecording() {
-            clearTimeout(recordingTimeout);
-            
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                
-                // Stop all audio tracks
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                
-                console.log('⏹️ Recording stopped');
-            }
-        }
-
-        // --- Networking & AI ---
-
-        async function sendAudio() {
-            // UI Updates
-            document.body.classList.remove('is-recording');
-            micWrapper.classList.remove('active');
-            document.body.classList.add('is-processing');
-            
-            micBtn.querySelector('.mic-label').textContent = 'PROCESSING...';
-            micBtn.classList.add('disabled');
-            isProcessing = true;
-            
-            statusEl.innerHTML = '💭 Thinking<span class="loading-dots"><span></span><span></span><span></span></span>';
-            statusEl.style.color = "var(--warning)";
-            statusSubtext.innerText = "Sarah is processing your request...";
-
-            if (audioChunks.length === 0) {
-                console.error('❌ No audio data recorded');
-                handleError('No audio detected. Please try again.');
-                return;
-            }
-
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
-            console.log('📦 Audio blob size:', (audioBlob.size / 1024).toFixed(2), 'KB');
-            
-            const formData = new FormData();
-            formData.append('data', audioBlob, 'voice.webm');
-            formData.append('sessionId', sessionId);
-
-            try {
-                console.log('🚀 Sending request to:', WEBHOOK_URL);
-                
+                // 2. Send to Backend
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: text, 
+                        sessionId: sessionId 
+                    })
                 });
 
-                console.log('📡 Response status:', response.status);
+                if (!response.ok) throw new Error("Network response was not ok");
 
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-                }
-
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Server did not return JSON response');
-                }
-
-                const json = await response.json();
-                console.log('✅ Response data:', json);
+                const data = await response.json();
                 
-                handleResponse(json);
-
-            } catch (err) {
-                console.error('❌ Network error:', err);
-                handleError('Connection error. Please check your internet and try again.');
-            }
-        }
-
-        function handleResponse(data) {
-            document.body.classList.remove('is-processing');
-            micBtn.classList.remove('disabled');
-            micBtn.querySelector('.mic-label').textContent = 'HOLD TO TALK';
-            isProcessing = false;
-
-            // Extract response text from various possible structures
-            let responseText = "";
-            let userTranscript = "";
-            
-            if (data.voice_response) {
-                responseText = data.voice_response;
-            } else if (data.output && data.output.voice_response) {
-                responseText = data.output.voice_response;
-            } else if (data.json && data.json.voice_response) {
-                responseText = data.json.voice_response;
-            } else if (typeof data === 'string') {
-                try {
-                    const parsed = JSON.parse(data);
-                    responseText = parsed.voice_response || parsed.output?.voice_response || "";
-                } catch {
-                    responseText = data;
-                }
-            }
-
-            if (!responseText || responseText.trim() === "") {
-                console.warn('⚠️ Empty response received');
-                handleError('Sorry, I didn\'t catch that. Could you please repeat?');
-                return;
-            }
-
-            console.log('💬 Final response:', responseText);
-
-            // Update status
-            statusEl.innerText = "🗣️ Sarah is speaking...";
-            statusEl.style.color = "var(--success)";
-            statusSubtext.innerText = "Listen to the response";
-
-            // Add to conversation history
-            addMessageToHistory('assistant', responseText);
-
-            // Speak the response
-            speak(responseText, () => {
-                // After speaking, reset status
-                statusEl.innerText = "Ready to help";
-                statusEl.style.color = "var(--primary)";
-                statusSubtext.innerText = "Press and hold to speak";
-            });
-        }
-
-        function handleError(message) {
-            document.body.classList.remove('is-processing');
-            micBtn.classList.remove('disabled');
-            micBtn.querySelector('.mic-label').textContent = 'HOLD TO TALK';
-            isProcessing = false;
-            
-            statusEl.innerText = "⚠️ Error";
-            statusEl.style.color = "var(--error)";
-            statusSubtext.innerText = message;
-            
-            // Reset after 3 seconds
-            setTimeout(() => {
-                statusEl.innerText = "Ready to help";
-                statusEl.style.color = "var(--primary)";
-                statusSubtext.innerText = "Press and hold to speak";
-            }, 3000);
-        }
-
-        function speak(text, onComplete) {
-            // Cancel any ongoing speech
-            window.speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            // Set voice
-            const setVoice = () => {
-                const voices = window.speechSynthesis.getVoices();
-                const britishVoice = voices.find(v => 
-                    v.lang.includes('en-GB') || 
-                    v.name.includes('UK') || 
-                    v.name.includes('British') ||
-                    v.name.includes('Female')
-                );
+                // 3. Handle Response
+                // Checks for 'voice_response' or nested 'output.text'/'output.reply' depending on agent structure
+                const botReply = data.voice_response || 
+                               (data.output && (data.output.text || data.output.reply)) || 
+                               "I'm sorry, I encountered an error. Please try again.";
                 
-                if (britishVoice) {
-                    utterance.voice = britishVoice;
-                }
-            };
-            
-            if (window.speechSynthesis.getVoices().length > 0) {
-                setVoice();
-            } else {
-                window.speechSynthesis.onvoiceschanged = setVoice;
+                addMessage(botReply, 'bot');
+
+            } catch (error) {
+                console.error("Error:", error);
+                addMessage("⚠️ System offline. Please check your internet connection.", 'bot');
+            } finally {
+                setLoading(false);
+                userInput.focus();
             }
-            
-            utterance.rate = 0.95;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
-            
-            utterance.onend = () => {
-                console.log('🔊 Speech completed');
-                if (onComplete) onComplete();
-            };
-            
-            utterance.onerror = (event) => {
-                console.error('Speech error:', event);
-                if (onComplete) onComplete();
-            };
-            
-            window.speechSynthesis.speak(utterance);
         }
 
-        // --- Conversation History Management ---
+        // --- Helper Functions ---
 
-        function addMessageToHistory(type, text) {
-            const message = document.createElement('div');
-            message.className = `message ${type}`;
-            
-            const label = document.createElement('div');
-            label.className = `message-label ${type}`;
-            label.innerHTML = type === 'user' ? '👤 You' : '🤖 Sarah';
+        function addMessage(text, sender) {
+            const row = document.createElement('div');
+            row.className = `message-row ${sender}`;
             
             const bubble = document.createElement('div');
-            bubble.className = 'message-bubble';
-            bubble.textContent = text;
+            bubble.className = 'bubble';
+            // Allow simple HTML breaks if needed, otherwise textContent for security
+            bubble.innerHTML = text.replace(/\n/g, '<br>'); 
             
-            message.appendChild(label);
-            message.appendChild(bubble);
-            conversationHistory.appendChild(message);
-            
-            // Scroll to bottom
-            conversationHistory.scrollTop = conversationHistory.scrollHeight;
-            
-            // Show clear button
-            clearBtn.style.display = 'inline-block';
-            
-            // Save to localStorage
-            saveConversationHistory();
+            row.appendChild(bubble);
+            chatContainer.appendChild(row);
+            scrollToBottom();
         }
 
-        function saveConversationHistory() {
-            const messages = Array.from(conversationHistory.children).map(msg => ({
-                type: msg.classList.contains('user') ? 'user' : 'assistant',
-                text: msg.querySelector('.message-bubble').textContent
-            }));
-            localStorage.setItem('nhs_conversation_' + sessionId, JSON.stringify(messages));
+        function setLoading(isLoading) {
+            sendBtn.disabled = isLoading;
+            userInput.disabled = isLoading;
+            typingIndicator.style.display = isLoading ? 'flex' : 'none';
         }
 
-        function loadConversationHistory() {
-            const saved = localStorage.getItem('nhs_conversation_' + sessionId);
-            if (saved) {
-                try {
-                    const messages = JSON.parse(saved);
-                    messages.forEach(msg => {
-                        addMessageToHistory(msg.type, msg.text);
-                    });
-                } catch (e) {
-                    console.error('Error loading conversation history:', e);
-                }
-            }
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function clearConversation() {
-            if (confirm('Clear conversation history? This will start a new session.')) {
-                conversationHistory.innerHTML = '';
-                clearBtn.style.display = 'none';
-                localStorage.removeItem('nhs_conversation_' + sessionId);
-                
-                // Generate new session ID
-                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-                localStorage.setItem('nhs_session_id', sessionId);
-                console.log('🆕 New Session ID:', sessionId);
-                
-                statusEl.innerText = "New conversation started";
-                statusEl.style.color = "var(--success)";
-                statusSubtext.innerText = "Ready to help";
-                
-                setTimeout(() => {
-                    statusEl.innerText = "Ready to help";
-                    statusEl.style.color = "var(--primary)";
-                    statusSubtext.innerText = "Press and hold to speak";
-                }, 2000);
-            }
-        }
+        // --- Event Listeners ---
 
-        // --- Instructions Panel Management ---
+        sendBtn.addEventListener('click', sendMessage);
 
-        function hideInstructions() {
-            document.getElementById('instructions-panel').style.display = 'none';
-            document.getElementById('show-instructions-btn').style.display = 'inline-block';
-            localStorage.setItem('nhs_instructions_hidden', 'true');
-        }
-
-        function showInstructions() {
-            document.getElementById('instructions-panel').style.display = 'block';
-            document.getElementById('show-instructions-btn').style.display = 'none';
-            localStorage.setItem('nhs_instructions_hidden', 'false');
-        }
-
-        // Check if instructions should be hidden on load
-        if (localStorage.getItem('nhs_instructions_hidden') === 'true') {
-            hideInstructions();
-        }
-
-        // Prevent accidental page refresh during recording
-        window.addEventListener('beforeunload', (e) => {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                e.preventDefault();
-                e.returnValue = '';
-            }
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
         });
 
-        // Log when page loads
-        console.log('✅ NHS Connect Voice Assistant Ready');
-        console.log('📍 Webhook URL:', WEBHOOK_URL);
     </script>
 </body>
 </html>
-
