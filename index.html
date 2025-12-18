@@ -164,8 +164,10 @@
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.4s ease;
-            display: none; /* Hidden initially */
+            display: none;
             position: relative;
+            max-height: 200px;
+            overflow-y: auto;
         }
         
         /* Little triangle for chat bubble */
@@ -190,7 +192,7 @@
 
         /* --- States --- */
         .is-recording #mic-btn {
-            background: #ef4444; /* Red when recording */
+            background: #ef4444;
             box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
         }
         .is-processing #status-text {
@@ -223,7 +225,7 @@
         <h1>Virtual Receptionist</h1>
         <p class="subtitle">Press and hold the button to speak.</p>
 
-        <div id="status-text">Ready</div>
+        <div id="status-text">Ready to help</div>
 
         <div class="mic-wrapper" id="mic-wrapper">
             <div class="pulse-ring"></div>
@@ -247,9 +249,10 @@
 
     <script>
         // ==========================================
-        //  CONFIG: PASTE YOUR N8N URL HERE
+        //  CONFIG: PASTE YOUR N8N WEBHOOK URL HERE
         // ==========================================
         const WEBHOOK_URL = "https://i-zeerak.app.n8n.cloud/webhook-test/voice-chat"; 
+        // IMPORTANT: Replace with your actual n8n webhook URL
         // ==========================================
 
         let mediaRecorder;
@@ -258,12 +261,14 @@
         const micWrapper = document.getElementById('mic-wrapper');
         const responseBox = document.getElementById('response-box');
         
-        // Session ID Handling
+        // Session ID Handling - maintains conversation continuity
         let sessionId = localStorage.getItem('nhs_session_id');
         if (!sessionId) {
-            sessionId = Math.random().toString(36).substring(7);
+            sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
             localStorage.setItem('nhs_session_id', sessionId);
         }
+        
+        console.log('Session ID:', sessionId);
 
         // --- Recording Functions ---
 
@@ -273,7 +278,12 @@
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
-                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
                 mediaRecorder.onstop = sendAudio;
                 
                 mediaRecorder.start();
@@ -288,8 +298,8 @@
                 responseBox.classList.remove('visible');
 
             } catch (err) {
-                console.error("Mic Error:", err);
-                statusEl.innerText = "Microphone access required.";
+                console.error("Microphone Error:", err);
+                statusEl.innerText = "Microphone access required";
                 statusEl.style.color = "var(--error)";
             }
         }
@@ -298,12 +308,15 @@
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
                 
+                // Stop all audio tracks
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
                 // UI Updates
                 micWrapper.classList.remove('active');
                 document.body.classList.remove('is-recording');
                 document.body.classList.add('is-processing');
                 
-                statusEl.innerText = "Thinking...";
+                statusEl.innerText = "Processing...";
                 statusEl.style.color = "var(--text-sub)";
             }
         }
@@ -311,10 +324,20 @@
         // --- Networking & AI ---
 
         async function sendAudio() {
+            if (audioChunks.length === 0) {
+                console.error('No audio data recorded');
+                document.body.classList.remove('is-processing');
+                statusEl.innerText = "No audio detected. Try again.";
+                statusEl.style.color = "var(--error)";
+                return;
+            }
+
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            console.log('Audio blob size:', audioBlob.size, 'bytes');
+            
             const formData = new FormData();
             formData.append('data', audioBlob, 'voice.webm');
-            formData.append('sessionId', sessionId); 
+            formData.append('sessionId', sessionId);
 
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -322,52 +345,127 @@
                     body: formData
                 });
 
-                if (!response.ok) throw new Error("Server Error");
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
 
                 const json = await response.json();
+                console.log('Response data:', json);
                 handleResponse(json);
 
             } catch (err) {
-                console.error(err);
+                console.error('Network error:', err);
                 document.body.classList.remove('is-processing');
                 statusEl.innerText = "Connection Error";
                 statusEl.style.color = "var(--error)";
+                
+                // Fallback response
+                responseBox.innerText = "Sorry, I'm having trouble connecting. Please try again.";
+                responseBox.classList.add('visible');
             }
         }
 
         function handleResponse(data) {
-            // Debugging: Print the exact data from n8n to the browser console
-            console.log("Data received from n8n:", data); 
-        
-            // Remove processing state
             document.body.classList.remove('is-processing');
-            
-            // Check if voice_response exists directly, or if it's nested in .output
-            const message = data.voice_response || (data.output && data.output.voice_response) || "Sorry, I didn't catch that.";
-        
-            statusEl.innerText = "Assistant says:";
+            statusEl.innerText = "Sarah says:";
             statusEl.style.color = "var(--primary)";
-        
+
+            // Handle different response structures from n8n
+            let responseText = "";
+            
+            // Try different possible response structures
+            if (data.voice_response) {
+                responseText = data.voice_response;
+            } else if (data.output && data.output.voice_response) {
+                responseText = data.output.voice_response;
+            } else if (data.json && data.json.voice_response) {
+                responseText = data.json.voice_response;
+            } else if (typeof data === 'string') {
+                try {
+                    const parsed = JSON.parse(data);
+                    responseText = parsed.voice_response || parsed.output?.voice_response || "I didn't catch that.";
+                } catch {
+                    responseText = data;
+                }
+            } else {
+                console.warn('Unexpected response format:', data);
+                responseText = "Sorry, I didn't catch that. Could you please repeat?";
+            }
+
+            console.log('Final response text:', responseText);
+
             // Show Chat Bubble
-            responseBox.innerText = message;
+            responseBox.innerText = responseText;
             responseBox.classList.add('visible');
-        
+
             // Speak Audio
-            speak(message);
+            speak(responseText);
+            
+            // Reset status after speaking
+            setTimeout(() => {
+                statusEl.innerText = "Ready to help";
+                statusEl.style.color = "var(--primary)";
+            }, 3000);
         }
 
         function speak(text) {
+            // Cancel any ongoing speech
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            const britishVoice = voices.find(v => v.lang.includes('GB') || v.name.includes('UK'));
             
-            if (britishVoice) utterance.voice = britishVoice;
-            utterance.rate = 1.0;
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Wait for voices to load
+            const setVoice = () => {
+                const voices = window.speechSynthesis.getVoices();
+                // Prefer British English voice
+                const britishVoice = voices.find(v => 
+                    v.lang.includes('en-GB') || 
+                    v.name.includes('UK') || 
+                    v.name.includes('British')
+                );
+                
+                if (britishVoice) {
+                    utterance.voice = britishVoice;
+                }
+            };
+            
+            // Voices might not be loaded yet
+            if (window.speechSynthesis.getVoices().length > 0) {
+                setVoice();
+            } else {
+                window.speechSynthesis.onvoiceschanged = setVoice;
+            }
+            
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
             
             window.speechSynthesis.speak(utterance);
         }
+        
+        // Reset conversation function (optional - for testing)
+        function resetConversation() {
+            localStorage.removeItem('nhs_session_id');
+            sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('nhs_session_id', sessionId);
+            console.log('New Session ID:', sessionId);
+            responseBox.classList.remove('visible');
+            statusEl.innerText = "Ready to help";
+            statusEl.style.color = "var(--primary)";
+        }
+        
+        // Double-tap badge to reset conversation (for testing)
+        let tapCount = 0;
+        document.querySelector('.badge').addEventListener('click', () => {
+            tapCount++;
+            if (tapCount === 2) {
+                resetConversation();
+                tapCount = 0;
+            }
+            setTimeout(() => tapCount = 0, 500);
+        });
     </script>
 </body>
-
 </html>
