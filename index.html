@@ -336,16 +336,24 @@
         }
 
         function handleResponse(data) {
+            // Debugging: Print the exact data from n8n to the browser console
+            console.log("Data received from n8n:", data); 
+        
+            // Remove processing state
             document.body.classList.remove('is-processing');
+            
+            // Check if voice_response exists directly, or if it's nested in .output
+            const message = data.voice_response || (data.output && data.output.voice_response) || "Sorry, I didn't catch that.";
+        
             statusEl.innerText = "Assistant says:";
             statusEl.style.color = "var(--primary)";
-
+        
             // Show Chat Bubble
-            responseBox.innerText = data.voice_response;
+            responseBox.innerText = message;
             responseBox.classList.add('visible');
-
+        
             // Speak Audio
-            speak(data.voice_response);
+            speak(message);
         }
 
         function speak(text) {
@@ -361,4 +369,5 @@
         }
     </script>
 </body>
+
 </html>
