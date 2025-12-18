@@ -2,391 +2,293 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>NHS Connect | Smart Receptionist</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediFlow | Intelligent GP System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        /* CSS STYLING */
         :root {
-            /* Official NHS Colour Palette */
-            --nhs-blue: #005EB8;
-            --nhs-dark-blue: #003087;
-            --nhs-bright-blue: #0072CE;
-            --nhs-grey-1: #425563;
-            --nhs-grey-2: #768692;
-            --nhs-grey-5: #F0F4F5;
-            --white: #FFFFFF;
-            
-            /* UI Variables */
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --radius-bubble: 18px;
+            --primary-color: #0056b3; /* Medical Blue */
+            --accent-color: #00a8cc;  /* Cyan Accent */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --success-color: #28a745;
         }
-
-        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--nhs-grey-5);
-            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
             display: flex;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
-            color: var(--nhs-grey-1);
-        }
-
-        /* Main App Container */
-        .app-card {
-            width: 100%;
-            max-width: 440px;
-            height: 100%;
-            max-height: 850px;
-            background: var(--white);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: var(--shadow-md);
-        }
-
-        /* Desktop border radius */
-        @media (min-width: 450px) {
-            .app-card {
-                height: 90vh;
-                border-radius: 16px;
-                overflow: hidden;
-            }
-        }
-
-        /* Header */
-        .header {
-            background-color: var(--nhs-blue);
-            padding: 20px;
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            color: var(--white);
-            box-shadow: 0 2px 8px rgba(0, 94, 184, 0.2);
-            z-index: 10;
-        }
-
-        .header-title h1 {
-            font-size: 18px;
-            font-weight: 700;
+            min-height: 100vh;
             margin: 0;
-            letter-spacing: -0.01em;
-        }
-
-        .header-title span {
-            font-size: 12px;
-            opacity: 0.9;
-            font-weight: 400;
-            display: block;
-            margin-top: 2px;
-        }
-
-        .status-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #00D600; /* Green */
-            border-radius: 50%;
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
-        }
-
-        /* Chat Area */
-        .chat-area {
-            flex: 1;
             padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            scroll-behavior: smooth;
-            background-color: #fff;
         }
 
-        /* Message Bubbles */
-        .message-row {
-            display: flex;
+        .container {
+            background: white;
             width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-top: 6px solid var(--primary-color);
         }
 
-        .message-row.user { justify-content: flex-end; }
-        .message-row.bot { justify-content: flex-start; }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-        .bubble {
-            max-width: 80%;
-            padding: 14px 18px;
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 0;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        input[type="text"], 
+        input[type="email"], 
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
             font-size: 15px;
-            line-height: 1.5;
-            position: relative;
-            word-wrap: break-word;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
 
-        .bot .bubble {
-            background-color: var(--nhs-grey-5);
-            color: var(--nhs-grey-1);
-            border-radius: var(--radius-bubble);
-            border-top-left-radius: 4px;
-        }
-
-        .user .bubble {
-            background-color: var(--nhs-blue);
-            color: var(--white);
-            border-radius: var(--radius-bubble);
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0, 94, 184, 0.25);
-        }
-
-        /* Input Area */
-        .input-wrapper {
-            padding: 16px;
-            border-top: 1px solid #eee;
-            background: var(--white);
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        input {
-            flex: 1;
-            padding: 14px 20px;
-            border: 1px solid #E0E4E7;
-            border-radius: 30px;
-            font-size: 16px;
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
             outline: none;
-            transition: all 0.2s ease;
-            font-family: inherit;
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
         }
 
-        input:focus {
-            border-color: var(--nhs-blue);
-            box-shadow: 0 0 0 3px rgba(0, 94, 184, 0.1);
+        textarea {
+            resize: vertical;
+            min-height: 100px;
         }
 
         button {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--nhs-blue);
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px;
             border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
+            transition: background-color 0.3s ease, transform 0.1s ease;
         }
 
         button:hover {
-            background-color: var(--nhs-dark-blue);
-            transform: scale(1.05);
+            background-color: #004494;
         }
 
-        button:active { transform: scale(0.95); }
-        button:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+        button:active {
+            transform: scale(0.98);
+        }
 
-        button svg {
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
             width: 20px;
             height: 20px;
-            fill: white;
-            margin-left: 2px; /* Visual centering */
-        }
-
-        /* Typing Indicator */
-        .typing-indicator {
-            padding: 0 24px;
-            margin-bottom: 10px;
-            font-size: 12px;
-            color: var(--nhs-grey-2);
-            font-weight: 500;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
             display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Success Message State */
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-icon {
+            font-size: 50px;
+            color: var(--success-color);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .success-text h3 {
+            color: var(--text-color);
+            margin: 0 0 10px 0;
+        }
+
+        .success-text p {
+            color: #666;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+
+        .agent-status {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            border: 1px solid #e9ecef;
+        }
+
+        .agent-step {
+            display: flex;
             align-items: center;
-            gap: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #555;
         }
 
-        .dot-flashing {
-            position: relative;
-            width: 6px;
-            height: 6px;
-            border-radius: 5px;
-            background-color: var(--nhs-grey-2);
-            animation: dot-flashing 1s infinite linear alternate;
-            animation-delay: 0.5s;
-        }
-        .dot-flashing::before, .dot-flashing::after {
-            content: '';
-            display: inline-block;
-            position: absolute;
-            top: 0;
-            width: 6px;
-            height: 6px;
-            border-radius: 5px;
-            background-color: var(--nhs-grey-2);
-            animation: dot-flashing 1s infinite alternate;
-        }
-        .dot-flashing::before { left: -10px; animation-delay: 0s; }
-        .dot-flashing::after { left: 10px; animation-delay: 1s; }
-
-        @keyframes dot-flashing {
-            0% { background-color: var(--nhs-grey-2); }
-            50%, 100% { background-color: #e3e7ed; }
+        .agent-step span {
+            margin-right: 10px;
         }
 
-        @keyframes popIn {
-            from { opacity: 0; transform: translateY(10px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
     </style>
 </head>
 <body>
 
-    <div class="app-card">
-        <div class="header">
-            <div class="header-title">
-                <h1>NHS Connect</h1>
-                <span>Virtual Receptionist</span>
-            </div>
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                Online
-            </div>
-        </div>
+<div class="container">
+    
+    <div id="triageFormWrapper">
+        <header>
+            <h1>🩺 MediFlow Agent</h1>
+            <p class="subtitle">AI-Assisted Emergency & GP Routing System</p>
+        </header>
 
-        <div class="chat-area" id="chat-container">
-            <div class="message-row bot">
-                <div class="bubble">
-                    Hello! I'm Sarah, your virtual receptionist. 👋<br><br>
-                    I can help you <b>book appointments</b>, <b>cancel bookings</b>, or check availability.<br><br>
-                    How can I help you today?
-                </div>
+        <form id="triageForm" onsubmit="submitData(event)">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="e.g. Muhammad Zeerak" required>
             </div>
-        </div>
 
-        <div class="typing-indicator" id="typing-indicator">
-            <div class="dot-flashing"></div>
-            <span>Sarah is thinking...</span>
-        </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="Required for appointment details" required>
+            </div>
 
-        <div class="input-wrapper">
-            <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
-            <button id="send-btn">
-                <svg viewBox="0 0 24 24">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                </svg>
+            <div class="form-group">
+                <label for="symptoms">Describe Symptoms</label>
+                <textarea id="symptoms" placeholder="Please describe your main complaint, pain level (1-10), and any other symptoms..." required></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <span class="spinner" id="btnSpinner"></span>
+                <span id="btnText">Submit for Analysis</span>
             </button>
+        </form>
+    </div>
+
+    <div id="successMessage" class="success-state">
+        <span class="success-icon">✅</span>
+        <div class="success-text">
+            <h3>Request Received</h3>
+            <p>Your details have been securely transmitted to our Intelligent Agent System.</p>
+        </div>
+        
+        <div class="agent-status">
+            <p style="font-size: 13px; color: #0056b3; font-weight: 600;">
+                You will receive an email shortly with your Agent Result (GP Booking or Emergency Alert).
+            </p>
         </div>
     </div>
 
-    <script>
-        // ==========================================
-        //  CONFIG: PASTE YOUR N8N URL HERE
-        // ==========================================
-        const WEBHOOK_URL = "https://i-zeerak.app.n8n.cloud/webhook/nhs-chat"; 
-        // ==========================================
+</div>
 
-        const chatContainer = document.getElementById('chat-container');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const typingIndicator = document.getElementById('typing-indicator');
+<script>
+    async function submitData(event) {
+        event.preventDefault(); // Stop page reload
 
-        // Persistent Session ID (Memory)
-        let sessionId = localStorage.getItem('nhs_chat_session_id');
-        if (!sessionId) {
-            sessionId = Math.random().toString(36).substring(7);
-            localStorage.setItem('nhs_chat_session_id', sessionId);
-        }
+        // --- CONFIGURATION ---
+        const webhookUrl = 'https://i-zeerak.app.n8n.cloud/webhook/submit-triage-final'; 
+        // ---------------------
 
-        // --- Core Logic ---
+        // Get values
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const symptoms = document.getElementById('symptoms').value;
+        
+        // UI Handling: Show loading state
+        const btn = document.getElementById('submitBtn');
+        const spinner = document.getElementById('btnSpinner');
+        const btnText = document.getElementById('btnText');
 
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        btnText.innerText = 'Transmitting...';
 
-            // 1. Add User Message
-            addMessage(text, 'user');
-            userInput.value = '';
-            setLoading(true);
+        const payload = {
+            name: name,
+            email: email,
+            symptoms: symptoms
+        };
 
-            try {
-                // 2. Send to Backend
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        text: text, 
-                        sessionId: sessionId 
-                    })
-                });
+        try {
+            // Send data to n8n
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
 
-                if (!response.ok) throw new Error("Network response was not ok");
-
-                const data = await response.json();
-                
-                // 3. Handle Response
-                // Checks for 'voice_response' or nested 'output.text'/'output.reply' depending on agent structure
-                const botReply = data.voice_response || 
-                               (data.output && (data.output.text || data.output.reply)) || 
-                               "I'm sorry, I encountered an error. Please try again.";
-                
-                addMessage(botReply, 'bot');
-
-            } catch (error) {
-                console.error("Error:", error);
-                addMessage("⚠️ System offline. Please check your internet connection.", 'bot');
-            } finally {
-                setLoading(false);
-                userInput.focus();
+            // If n8n received it (200 OK)
+            if (response.ok) {
+                document.getElementById('triageFormWrapper').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+            } else {
+                throw new Error('Server responded with an error');
             }
-        }
 
-        // --- Helper Functions ---
-
-        function addMessage(text, sender) {
-            const row = document.createElement('div');
-            row.className = `message-row ${sender}`;
+        } catch (error) {
+            console.error('Error:', error);
+            alert("Connection Error: Could not reach the Triage System. Please check your internet or the Webhook URL.");
             
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            // Allow simple HTML breaks if needed, otherwise textContent for security
-            bubble.innerHTML = text.replace(/\n/g, '<br>'); 
-            
-            row.appendChild(bubble);
-            chatContainer.appendChild(row);
-            scrollToBottom();
+            // Reset button on error
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.innerText = 'Submit for Analysis';
         }
+    }
+</script>
 
-        function setLoading(isLoading) {
-            sendBtn.disabled = isLoading;
-            userInput.disabled = isLoading;
-            typingIndicator.style.display = isLoading ? 'flex' : 'none';
-        }
-
-        function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        // --- Event Listeners ---
-
-        sendBtn.addEventListener('click', sendMessage);
-
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-    </script>
 </body>
 </html>
-
-
