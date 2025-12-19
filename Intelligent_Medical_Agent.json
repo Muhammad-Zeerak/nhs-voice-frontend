@@ -1,0 +1,482 @@
+{
+  "name": "Intelligent_Medical_Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "submit-triage-final",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        4544,
+        48
+      ],
+      "id": "5beb43a0-c583-4409-a148-0240026eefb2",
+      "name": "Webhook - Patient Input",
+      "webhookId": "c37411a4-78b2-4ff8-8aac-ea42be29420f"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"summary\": \"Patient presents with severe abdominal pain localized to the right lower quadrant with nausea\",\n  \"pain_score\": 8,\n  \"vitals_extracted\": [\"Temperature: 38.5°C\", \"BP: 140/90\"],\n  \"red_flags\": [\"Severe localized pain\", \"Fever present\"],\n  \"symptom_duration\": \"6 hours\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4928,
+        224
+      ],
+      "id": "d1f73eeb-18ca-4f93-a867-91c4a9b580c2",
+      "name": "Parser - Nurse"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"diagnosis\": \"Suspected Acute Appendicitis\",\n  \"differential\": [\"Ovarian cyst rupture\", \"Acute gastroenteritis\"],\n  \"risk_level\": \"HIGH\",\n  \"reasoning\": \"Right lower quadrant pain combined with fever and elevated pain score indicates possible acute appendicitis. This requires immediate surgical evaluation to prevent complications such as perforation and peritonitis.\",\n  \"recommended_timeframe\": \"Immediate ED\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        5312,
+        224
+      ],
+      "id": "96710be0-888c-4ead-b0e8-2725234614b8",
+      "name": "Parser - Doctor"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "muhammadzeerakroots@gmail.com",
+          "mode": "list",
+          "cachedResultName": "muhammadzeerakroots@gmail.com"
+        },
+        "start": "={{ $now.plus(1, 'hours') }}",
+        "end": "={{ $now.plus(1, 'hours').plus(15, 'minutes') }}",
+        "additionalFields": {
+          "description": "={{ $('Agent 2 - Doctor').item.json.output.diagnosis }} - {{ $('Webhook - Patient Input').item.json.body.name }}",
+          "summary": "={{ $('Webhook - Patient Input').item.json.body.name }} GP Appointment"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [
+        6224,
+        -112
+      ],
+      "id": "a16fca83-a539-4634-aee1-655365836be4",
+      "name": "Google Calendar - Book GP",
+      "retryOnFail": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "cYOogxL7al3hXCXR",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook - Patient Input').item.json.body.email }}",
+        "subject": "={{ $('Agent 3 - Router').item.json.output.email_subject }}",
+        "message": "={{ $('Agent 3 - Router').item.json.output.email_body }}\n\n(Appointment has been added to your calendar)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        6464,
+        -112
+      ],
+      "id": "d9da8ec6-61b8-431e-a7f0-4622f2fdc1f9",
+      "name": "Gmail - GP Confirmation",
+      "webhookId": "87d5f6b6-c7eb-4a94-9cfd-bdf8eb8d3a27",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pxLadHqyh94EnMiM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook - Patient Input').item.json.body.email }}",
+        "subject": "URGENT: ACTION REQUIRED",
+        "message": "={{ $('Agent 3 - Router').item.json.output.email_body }}\n\nPLEASE PROCEED TO EMERGENCY IMMEDIATELY.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        6224,
+        144
+      ],
+      "id": "7e9d0101-58ff-4784-9aa2-f01b863a4b68",
+      "name": "Gmail - Emergency Alert",
+      "webhookId": "dedd6fa9-d6aa-429a-baf6-4d38e86bc7bc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pxLadHqyh94EnMiM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Request Received. Processing...",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        4784,
+        -144
+      ],
+      "id": "24a5b9ea-a710-4976-81a3-090634ba04e7",
+      "name": "Immediate 200 OK"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        5248,
+        448
+      ],
+      "id": "e52ee874-b95f-47a7-a76a-bc28db26381f",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "WAf07ZXkW7LLepEe",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Agent 1: Senior Triage Nurse with 15 years of emergency department experience.\n\nPATIENT INFORMATION:\n- Name: {{ $json.body.name }}\n- Reported Symptoms: \"{{ $json.body.symptoms }}\"\n\nYOUR TASK:\nPerform initial patient assessment by:\n1. Extracting and organizing all reported symptoms systematically\n2. Identifying pain severity (0-10 scale) if mentioned\n3. Detecting any vital signs mentioned (temperature, blood pressure, heart rate, breathing difficulty)\n4. Flagging red flag symptoms (chest pain, difficulty breathing, severe bleeding, altered consciousness)\n5. Creating a professional clinical summary\n\nCRITICAL REQUIREMENTS:\n- Use medical terminology appropriately\n- Be thorough but concise\n- If pain score not mentioned, analyze symptom severity and assign a clinical pain estimate\n- List vitals as structured array even if empty\n\nOUTPUT STRICT JSON FORMAT:\n{\n  \"summary\": \"Professional clinical summary of patient presentation (2-3 sentences)\",\n  \"pain_score\": <number 1-10 or null>,\n  \"vitals_extracted\": [\"List vital signs mentioned, e.g., 'Temperature: 38.5°C', 'BP: 140/90'\"],\n  \"red_flags\": [\"List any emergency indicators\"],\n  \"symptom_duration\": \"Duration if mentioned, otherwise 'Not specified'\"\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        4784,
+        48
+      ],
+      "id": "08b9390b-7c16-410d-8bef-9bc52a6b6227",
+      "name": "Agent 1 - Nurse"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Agent 2: Consultant Emergency Physician with expertise in rapid differential diagnosis.\n\nCLINICAL DATA FROM TRIAGE:\n- Patient Summary: {{ $('Agent 1 - Nurse').item.json.output.summary }}\n- Pain Score: {{ $('Agent 1 - Nurse').item.json.output.pain_score }}\n- Vital Signs: {{ $('Agent 1 - Nurse').item.json.output.vitals_extracted }}\n- Red Flags: {{ $('Agent 1 - Nurse').item.json.output.red_flags }}\n\nYOUR TASK:\nPerform clinical assessment and risk stratification:\n1. Generate differential diagnosis (top 2-3 possibilities, most likely first)\n2. Assess risk level using emergency medicine protocols\n3. Provide clear clinical reasoning\n\nRISK LEVEL CRITERIA:\n- HIGH: Life-threatening conditions, requires immediate emergency care (chest pain, severe trauma, stroke symptoms, severe bleeding, difficulty breathing, altered consciousness, suspected appendicitis/peritonitis)\n- MEDIUM: Serious but stable, needs same-day GP evaluation (moderate pain, infection symptoms, persistent vomiting)\n- LOW: Minor issues, can wait for routine GP appointment (mild symptoms, minor injuries, routine follow-ups)\n\nCRITICAL THINKING:\n- Consider patient safety first\n- When in doubt, escalate risk level\n- Use evidence-based clinical reasoning\n\nOUTPUT STRICT JSON FORMAT:\n{\n  \"diagnosis\": \"Primary suspected condition (e.g., 'Suspected Acute Appendicitis' or 'Viral Upper Respiratory Tract Infection')\",\n  \"differential\": [\"Alternative diagnosis 1\", \"Alternative diagnosis 2\"],\n  \"risk_level\": \"<HIGH/MEDIUM/LOW>\",\n  \"reasoning\": \"Clear medical explanation for risk assessment (3-4 sentences with clinical rationale)\",\n  \"recommended_timeframe\": \"Immediate ED / Same-day GP / Routine GP within 48 hours\"\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        5168,
+        48
+      ],
+      "id": "74dfc4c2-76b7-400e-b70b-8d8ed1c8ee9a",
+      "name": "Agent 2 - Doctor"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Agent 3: Healthcare Logistics Coordinator managing patient flow and communications.\n\nCLINICAL ASSESSMENT:\n- Risk Level: {{ $('Agent 2 - Doctor').item.json.output.risk_level }}\n- Primary Diagnosis: {{ $('Agent 2 - Doctor').item.json.output.diagnosis }}\n- Recommended Action: {{ $('Agent 2 - Doctor').item.json.output.recommended_timeframe }}\n- Clinical Reasoning: {{ $('Agent 2 - Doctor').item.json.output.reasoning }}\n\nPATIENT DETAILS:\n- Name: {{ $('Webhook - Patient Input').item.json.body.name }}\n\nYOUR TASK:\nDetermine appropriate routing and generate professional patient communication:\n\nROUTING LOGIC:\n- If risk_level = \"HIGH\" → action: \"EMERGENCY\"\n- If risk_level = \"MEDIUM\" or \"LOW\" → action: \"BOOK_GP\"\n\nEMAIL REQUIREMENTS:\n- Professional NHS-style formatting\n- Use HTML with proper styling\n- Clear, empathetic, patient-friendly language\n- Include next steps and contact information\n- Maintain appropriate urgency without causing panic\n\nOUTPUT STRICT JSON FORMAT:\n{\n  \"action\": \"<BOOK_GP or EMERGENCY>\",\n  \"email_subject\": \"Appropriate subject line reflecting urgency\",\n  \"email_body\": \"FULL HTML EMAIL with inline CSS (see template below)\"\n}\n\nHTML EMAIL TEMPLATE FOR BOOK_GP:\n<!DOCTYPE html>\n<html>\n<head>\n<style>\nbody { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n.container { max-width: 600px; margin: 0 auto; background: #ffffff; }\n.header { background: #0056b3; color: white; padding: 20px; text-align: center; }\n.content { padding: 30px; }\n.info-box { background: #f0f7ff; border-left: 4px solid #0056b3; padding: 15px; margin: 20px 0; }\n.footer { background: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #666; }\n.button { background: #0056b3; color: white; padding: 12px 30px; text-decoration: none; display: inline-block; border-radius: 5px; margin: 15px 0; }\n</style>\n</head>\n<body>\n<div class=\"container\">\n<div class=\"header\">\n<h1>MediFlow - GP Appointment Confirmation</h1>\n</div>\n<div class=\"content\">\n<p>Dear {{ $('Webhook - Patient Input').item.json.body.name }},</p>\n<p>Thank you for using our Intelligent Agent System. Based on our clinical assessment, we have scheduled a GP appointment for you.</p>\n\n<div class=\"info-box\">\n<strong>Clinical Assessment Summary:</strong><br>\nCondition: {{ $('Agent 2 - Doctor').item.json.output.diagnosis }}<br>\nPriority: {{ $('Agent 2 - Doctor').item.json.output.risk_level }} Risk<br>\nRecommendation: {{ $('Agent 2 - Doctor').item.json.output.recommended_timeframe }}\n</div>\n\n<p><strong>Your Appointment Details:</strong></p>\n<ul>\n<li><strong>Date & Time:</strong> [Will be added to your calendar]</li>\n<li><strong>Duration:</strong> 15 minutes</li>\n<li><strong>Location:</strong> [Your registered GP surgery]</li>\n</ul>\n\n<p>A calendar invitation has been sent to your email. Please arrive 5 minutes early.</p>\n\n<p><strong>What to bring:</strong></p>\n<ul>\n<li>Photo ID</li>\n<li>List of current medications</li>\n<li>Any relevant medical records</li>\n</ul>\n\n<p>If your symptoms worsen or you experience severe pain, difficulty breathing, or chest pain, please call 999 immediately.</p>\n\n<p>Best regards,<br><strong>MediFlow Intelligent Agent System</strong></p>\n</div>\n<div class=\"footer\">\n<p>This is an automated message from MediFlow AI Agent System<br>\nEmergency: 999 | Non-Emergency: 111<br></p>\n</div>\n</div>\n</body>\n</html>\n\nHTML EMAIL TEMPLATE FOR EMERGENCY:\n<!DOCTYPE html>\n<html>\n<head>\n<style>\nbody { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n.container { max-width: 600px; margin: 0 auto; background: #ffffff; }\n.header { background: #dc3545; color: white; padding: 20px; text-align: center; }\n.content { padding: 30px; }\n.alert-box { background: #fff3cd; border: 3px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 8px; }\n.emergency-action { background: #dc3545; color: white; padding: 20px; text-align: center; font-size: 18px; font-weight: bold; margin: 20px 0; border-radius: 8px; }\n.footer { background: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #666; }\n</style>\n</head>\n<body>\n<div class=\"container\">\n<div class=\"header\">\n<h1>URGENT MEDICAL ALERT</h1>\n</div>\n<div class=\"content\">\n<p>Dear {{ $('Webhook - Patient Input').item.json.body.name }},</p>\n\n<div class=\"emergency-action\">\nIMMEDIATE ACTION REQUIRED\n</div>\n\n<p>Our clinical assessment has identified symptoms that require <strong>immediate emergency medical attention</strong>.</p>\n\n<div class=\"alert-box\">\n<strong>Clinical Assessment:</strong><br>\nSuspected Condition: {{ $('Agent 2 - Doctor').item.json.output.diagnosis }}<br>\nRisk Level: <span style=\"color: #dc3545; font-weight: bold;\">HIGH RISK</span><br>\nMedical Reasoning: {{ $('Agent 2 - Doctor').item.json.output.reasoning }}\n</div>\n\n<p style=\"font-size: 16px; font-weight: bold; color: #dc3545;\">WHAT TO DO NOW:</p>\n<ol style=\"font-size: 15px;\">\n<li><strong>Call 999 immediately</strong> or have someone drive you to the nearest Emergency Department</li>\n<li>Do NOT attempt to drive yourself</li>\n<li>Stay calm and inform the emergency operator of your symptoms</li>\n<li>If you have a medical alert bracelet or known allergies, have this information ready</li>\n</ol>\n\n<p style=\"background: #fff3cd; padding: 15px; border-radius: 5px;\">\n<strong>Emergency Number: 999</strong><br>\nThis is a potentially serious medical situation. Do not delay seeking emergency care.\n</p>\n\n<p>Stay safe,<br><strong>MediFlow Emergency Response Team</strong></p>\n</div>\n<div class=\"footer\">\n<p style=\"color: #dc3545; font-weight: bold;\">EMERGENCY: 999 | NON-URGENT: 111</p>\n</div>\n</div>\n</body>\n</html>",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        5568,
+        48
+      ],
+      "id": "6577b4f5-039f-4383-88f9-94585bf260e2",
+      "name": "Agent 3 - Router"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"action\": \"BOOK_GP\",\n  \"email_subject\": \"Your GP Appointment Confirmation - MediFlow\",\n  \"email_body\": \"<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333;}.container{max-width:600px;margin:0 auto;background:#ffffff;}</style></head><body><div class='container'><p>Full HTML email content here</p></div></body></html>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        5712,
+        224
+      ],
+      "id": "25469f93-8826-4e87-94d8-a93ae7abe7b9",
+      "name": "Parser - Router"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.action }}",
+                    "rightValue": "BOOK_GP",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e106c760-f85d-478b-b017-5307029a4493"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Book GP"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e89dc517-2155-41d3-ba34-80cf8b10ffa5",
+                    "leftValue": "={{ $json.output.action }}",
+                    "rightValue": "EMERGENCY",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Emergency"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        5952,
+        48
+      ],
+      "id": "becd2c03-a818-42a5-85d0-c7ce3be58bd7",
+      "name": "Path Router"
+    }
+  ],
+  "pinData": {
+    "Webhook - Patient Input": [
+      {
+        "json": {
+          "headers": {
+            "host": "i-zeerak.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+            "content-length": "297",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "77.96.51.186",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "GB",
+            "cf-ray": "9b0347089743947d-LHR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://nhs-voice-frontend.onrender.com",
+            "priority": "u=1, i",
+            "referer": "https://nhs-voice-frontend.onrender.com/",
+            "sec-ch-ua": "\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "77.96.51.186, 172.70.162.171",
+            "x-forwarded-host": "i-zeerak.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-79-75b7d58fff-xqwch",
+            "x-is-trusted": "yes",
+            "x-real-ip": "77.96.51.186"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "name": "Muhammad Zeerak",
+            "email": "muhammadzeerakroots@gmail.com",
+            "symptoms": "Severe chest pain in the center of my chest that started about 30 minutes ago, pain is radiating down my left arm, I'm sweating heavily and feel short of breath. The pain is crushing, like someone sitting on my chest."
+          },
+          "webhookUrl": "https://i-zeerak.app.n8n.cloud/webhook/submit-triage-final",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook - Patient Input": {
+      "main": [
+        [
+          {
+            "node": "Agent 1 - Nurse",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Immediate 200 OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser - Nurse": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent 1 - Nurse",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser - Doctor": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent 2 - Doctor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar - Book GP": {
+      "main": [
+        [
+          {
+            "node": "Gmail - GP Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent 1 - Nurse",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Agent 2 - Doctor",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Agent 3 - Router",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1 - Nurse": {
+      "main": [
+        [
+          {
+            "node": "Agent 2 - Doctor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 2 - Doctor": {
+      "main": [
+        [
+          {
+            "node": "Agent 3 - Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 3 - Router": {
+      "main": [
+        [
+          {
+            "node": "Path Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser - Router": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent 3 - Router",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Path Router": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar - Book GP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail - Emergency Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d9b14481-ddb0-429a-a7ea-d4bedfad139e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4967bf408ff2569f1cf2d054fcc2263ff40ce9838e86bca8da5d530b40c31669"
+  },
+  "id": "ZtSk2Ft8FmkWGTNd",
+  "tags": []
+}
